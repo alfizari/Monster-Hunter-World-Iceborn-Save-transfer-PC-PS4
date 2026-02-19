@@ -51,11 +51,22 @@ def ps4_to_pc():
 
         ps4_data=read_file(ps4_file_path)
 
-        #remove the extra section from ps4 file
-        ps4_data = ps4_data[:0x600488] + ps4_data[0x6010C0:]
+        if (
+            ps4_data[0x48A] == 0 or
+            ps4_data[0x48B] == 0 or
+            ps4_data[0x4A4] == 0 or
+            ps4_data[0x7B9] == 0
+                ):
+            # save is alr decrypted
+            ps4_data_decrypted=ps4_data[:0x600488] + ps4_data[0x6010C0:]
 
-        #decrypt ps4 file
-        ps4_data_decrypted= PS4.decrypt_save(ps4_data)
+        else:
+
+            #remove the extra section from ps4 file
+            ps4_data = ps4_data[:0x600488] + ps4_data[0x6010C0:]
+
+            #decrypt ps4 file
+            ps4_data_decrypted= PS4.decrypt_save(ps4_data)
 
         #transfer ps4 file to pc
 
@@ -83,7 +94,8 @@ def ps4_to_pc():
 def pc_to_ps4():
 
     try:
-
+        
+        DECRYPTED=False
         #read ps4 save
         ps4_path=filedialog.askopenfilename(title='Select your ps4 save')
 
@@ -92,11 +104,24 @@ def pc_to_ps4():
         # save the extra section 
         add_back = ps4_data[0x600488:0x6010C0]
 
-        #remove the extra
-        ps4_data_without_extra= ps4_data[:0x600488] + ps4_data[0x6010C0:]
+        if (
+            ps4_data[0x48A] == 0 or
+            ps4_data[0x48B] == 0 or
+            ps4_data[0x4A4] == 0 or
+            ps4_data[0x7B9] == 0
+                ):
+            # save is alr decrypted
+            ps4_data_without_extra=ps4_data[:0x600488] + ps4_data[0x6010C0:]
 
-        #decrypt save
-        ps4_data_decrypted= PS4.decrypt_save(ps4_data_without_extra)
+            DECRYPTED = True
+
+        else:
+
+            #remove the extra
+            ps4_data_without_extra= ps4_data[:0x600488] + ps4_data[0x6010C0:]
+
+            #decrypt save
+            ps4_data_decrypted= PS4.decrypt_save(ps4_data_without_extra)
 
         #read pc save
         pc_file_path=filedialog.askopenfilename(title='Select your PC save')
@@ -114,11 +139,18 @@ def pc_to_ps4():
 
         #encrypt ps4 save
 
-        ps4_data_encrypted_without_extra= bytearray(PS4.encrypt_save(ps4_data_decrypted))
+        if not DECRYPTED:
+            ps4_data_encrypted_without_extra= bytearray(PS4.encrypt_save(ps4_data_decrypted))
 
-        #add the extra section back
+            #add the extra section back
 
-        ps4_data_encrypted= ps4_data_encrypted_without_extra[:0x600488] + add_back + ps4_data_encrypted_without_extra[0x600488:]
+            ps4_data_encrypted= ps4_data_encrypted_without_extra[:0x600488] + add_back + ps4_data_encrypted_without_extra[0x600488:]
+
+        else:
+
+            ps4_data_encrypted= ps4_data_decrypted[:0x600488] + add_back + ps4_data_decrypted[0x600488:]
+
+
 
         #write data
 

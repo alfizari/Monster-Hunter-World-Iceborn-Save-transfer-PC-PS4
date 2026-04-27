@@ -593,6 +593,7 @@ def decrypt_save(save):
     print("Generated Hash:", hash_data.hex())
     if not check_hash(save, hash_data):
         print("WARNING: save has invalid hash")
+        
     
     save = decrypt_region(save, 0x70, 0xDA50, 3)
     save = decrypt_region(save, 0x3010D8, 0x2098C0, 0)
